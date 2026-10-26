@@ -40,6 +40,8 @@ test('cotação volumétrica passa pelo frontend, API e mostra discriminação',
   await page.getByLabel('Largura (cm)').fill('40')
   await page.getByLabel('Altura (cm)').fill('30')
   await page.getByLabel('Valor declarado (MZN)').fill('1000')
+  // Browser constraint validation must accept 1 kg and permit submit.
+  expect(await page.getByLabel('Peso real (kg)').evaluate((el: HTMLInputElement) => el.validity.valid)).toBe(true)
   await page.getByRole('button', { name: /Calcular cotação demonstrativa/ }).click()
   await expect(page.locator('.quote-total')).toContainText('695')
   await expect(page.locator('.breakdown')).toContainText('12 kg')

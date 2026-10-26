@@ -138,7 +138,7 @@ function Shipping({ onError }: { onError: (message: string) => void }) {
           </div>
           <div className="section-title section-spaced"><span className="section-icon"><Box size={20} /></span><div><h2>Dados da encomenda</h2><p>O peso volumétrico também afecta o custo</p></div></div>
           <div className="field-grid">
-            <label>Peso real (kg)<input type="number" required min="0.01" max="1000" step="0.1" value={form.weight_kg} onChange={e => updateNumber('weight_kg', e.target.value)} /></label>
+            <label>Peso real (kg)<input type="number" required min="0.01" max="1000" step="0.01" value={form.weight_kg} onChange={e => updateNumber('weight_kg', e.target.value)} /></label>
             <label>Valor declarado (MZN)<input type="number" min="0" max="10000000" step="1" value={form.declared_value_mzn} onChange={e => updateNumber('declared_value_mzn', e.target.value)} /></label>
           </div>
           <div className="field-grid triple">
