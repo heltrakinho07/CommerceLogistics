@@ -62,6 +62,21 @@ curl -X POST http://localhost:8000/api/quote -H "Content-Type: application/json"
 - **Recommendations:** content-based product similarity, with a deterministic same-category boost. No customer purchase history is included: this is **not collaborative filtering**.
 - **Price quotes:** fixed demo origin/destination rates, volumetric weight, optional express multiplier and coverage charge. It is **not ML-based cost prediction**.
 
+### Browser end-to-end tests
+
+The Playwright suite starts the real **FastAPI** service and **Vite** interface, then exercises API-backed search, product filters, recommendations, freight quotes, validation errors and mobile navigation.
+
+```bash
+# At repository root, with Python installed and the API dependencies available:
+pip install -r services/api/requirements-dev.txt
+cd apps/web
+npm install
+npx playwright install chromium
+npm test
+```
+
+GitHub Actions also checks a production Docker Compose startup and requests to the frontend via Nginx reverse proxy. See [CI](.github/workflows/ci.yml).
+
 ### Evaluation (no invented results)
 
 ```bash
@@ -74,12 +89,12 @@ The search benchmark uses a *small manually labelled demo set* in `data/sample/s
 ## Project structure
 
 ```text
-apps/web/                React + TypeScript + Vite dashboard
+apps/web/                React + TypeScript + Vite dashboard + Playwright browser tests
 services/api/app/        FastAPI contracts, ML retrieval, catalog, quote logic
 services/api/tests/      Integration and validation tests
 data/sample/             Clearly-labelled synthetic product and label fixtures
 ml/evaluate_search.py    Reproducible precision/recall/nDCG benchmark
-.github/workflows/ci.yml  Python tests + frontend production build
+.github/workflows/ci.yml  Python unit/API, React build, Playwright and Docker smoke tests
 docker-compose.yml       Web and API
 ```
 
