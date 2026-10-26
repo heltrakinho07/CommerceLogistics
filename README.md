@@ -2,7 +2,7 @@
 
 **End-to-end machine learning engineering portfolio** — smart product discovery, content-based recommendations, and transparent illustrative shipping quotes. Built independently for a technical portfolio; **not affiliated with any logistics company**.
 
-> **Data integrity:** All included products, ratings, and shipping tariffs are **fictional demonstration data**. The default search system uses a trained TF-IDF vector model (not a transformer embedding model); optional multilingual sentence-transformer embeddings can be enabled. Shipping quotes are **rule-based illustrative simulations**, *not* learned predictions or commercial offers. No evaluation numbers are claimed without execution.
+> **Data integrity:** All included products, ratings, and shipping tariffs are **fictional demonstration data**. The default search system uses a trained TF-IDF vector model (not a transformer embedding model); optional multilingual sentence-transformer embeddings can be enabled. Shipping includes a **trained supervised regression model** alongside an independent deterministic rule baseline. The ML model learns **entirely synthetic generated outcomes**, never observed commercial freight data. All predictions are experimental, not real quotes or validated logistics performance. No evaluation numbers are claimed without execution.
 
 ## Features
 
@@ -11,7 +11,9 @@
 | Product discovery | `GET /api/search?q=...` | TF-IDF cosine similarity; optional multilingual embeddings |
 | Catalogue | `GET /api/products` | Synthetic local dataset |
 | Similar products | `GET /api/recommendations/{id}` | Content-based similarity with category weighting |
-| Shipping simulator | `POST /api/quote` | Deterministic, volumetric-weight tariff simulator |
+| Shipping baseline | `POST /api/quote` | Deterministic illustrative tariffs; no ML |
+| Shipping regression | `POST /api/quote/predict` | Trained regression on synthetic examples; predicts cost and ETA |
+| Model evaluation | `GET /api/models/shipping/metrics` | Held-out synthetic MAE, RMSE, R² and candidate comparison |
 | Diagnostics | `GET /api/health` and `GET /docs` | Readiness and OpenAPI |
 
 ## Publish on Render (one service, one URL)
@@ -27,7 +29,7 @@ The root [`render.yaml`](render.yaml) Blueprint deploys the portfolio demo as **
 
 The Render process listens on `0.0.0.0` and the platform's `PORT` (default `10000`). Updates to `main` are configured to auto-deploy **only after GitHub checks pass**. No external API keys or databases are required.
 
-**Limits:** Render Free instances have 512 MiB RAM and spin down after 15 minutes without traffic. The next request can take around a minute to wake the service. The default `SEARCH_BACKEND=tfidf` is deliberately light; **do not switch to sentence-transformers on the Free instance** without capacity/load testing. Only use synthetic catalogue products and simulated shipping fees on this public demo. Deploying the Blueprint requires access to your own Render account; committing these files does not itself provision a service.
+**Limits:** Render Free instances have 512 MiB RAM and spin down after 15 minutes without traffic. The next request can take around a minute to wake the service. The default `SEARCH_BACKEND=tfidf` is deliberately light; **do not switch to sentence-transformers on the Free instance** without capacity/load testing. The tiny freight regression artefact is trained during Docker build and loaded at runtime. Only use synthetic catalogue products and simulated shipping fees on this public demo. Deploying the Blueprint requires access to your own Render account; committing these files does not itself provision a service.
 
 ### Test the Render image locally
 
@@ -84,7 +86,9 @@ curl -X POST http://localhost:8000/api/quote -H "Content-Type: application/json"
 - **Search baseline (ready by default):** scikit-learn word (1–2 gram) and character (3–5 gram) TF-IDF trained on the in-repo toy catalogue. Queries are optionally expanded with a small Portuguese/Mozambican glossary. This is lexical retrieval rather than contextual sentence understanding.
 - **Optional semantic embeddings:** `pip install -r services/api/requirements-embeddings.txt` and `SEARCH_BACKEND=sentence-transformers`. Uses `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`, downloaded on first use. This requires connectivity, extra CPU/RAM, and model licensing review for use beyond the demo.
 - **Recommendations:** content-based product similarity, with a deterministic same-category boost. No customer purchase history is included: this is **not collaborative filtering**.
-- **Price quotes:** fixed demo origin/destination rates, volumetric weight, optional express multiplier and coverage charge. It is **not ML-based cost prediction**.
+- **Shipping baseline:** `POST /api/quote` retains the deterministic illustrated tariff, weight, volumetric weight and express/coverage breakdown. It is **not** an ML forecast.
+- **Trained freight and ETA regression:** `POST /api/quote/predict` loads a scikit-learn artefact trained from a seeded generator, compares Ridge, Random Forest and Histogram Gradient Boosting on validation, refits the selected model without touching the final test sample, and reports held-out MAE/RMSE/R² per target. `GET /api/models/shipping/metrics` makes the experiment auditable. These are **simulation-only** results: no observational shipping prices, actual delivery times or real customers.
+- **Scope:** The model is not validated for Mozambican carriers, long-range extrapolation or genuine quotes. Synthetic test scores cannot establish commercial accuracy. The frontend shows the ML prediction alongside a separate rule-engine reference.
 
 ### Browser end-to-end tests
 
@@ -100,6 +104,21 @@ npm test
 ```
 
 GitHub Actions also checks a production Docker Compose startup and requests to the frontend via Nginx reverse proxy. See [CI](.github/workflows/ci.yml).
+
+### Freight model training and test methodology
+
+```bash
+# From repository root after installing Python requirements:
+PYTHONPATH=services/api python ml/train_shipping.py
+# Generated (gitignored) artefacts:
+# services/api/models/freight.joblib
+# services/api/models/freight_metrics.json
+PYTHONPATH=services/api pytest -q services/api/tests
+```
+
+The generator has a fixed seed and creates **1,800 wholly fictional examples** (not carrier records). We split 70% training / 15% model selection / 15% untouched test, comparing Ridge, Random Forest and Histogram Gradient Boosting by validation MAE. The chosen model is refitted on training+validation and evaluated once on the held-out test. We report MAE, RMSE, R² and a median-value baseline separately for cost in MZN and time in days. These metrics are **only about the simulated data generator**, never real freight accuracy or deployment readiness.
+
+For commercially defensible predictions, obtain authorised actual freight prices and shipment-delivery timestamps, remove leakage, hold out later periods and unseen routes, assess drift, and calibrate prediction ranges.
 
 ### Evaluation (no invented results)
 
@@ -118,6 +137,7 @@ services/api/app/        FastAPI contracts, ML retrieval, catalog, quote logic
 services/api/tests/      Integration and validation tests
 data/sample/             Clearly-labelled synthetic product and label fixtures
 ml/evaluate_search.py    Reproducible precision/recall/nDCG benchmark
+ml/train_shipping.py     Generated freight data, model fitting and test metrics
 .github/workflows/ci.yml  Python unit/API, React build, Playwright and Docker smoke tests
 docker-compose.yml       Web and API
 ```
@@ -126,7 +146,7 @@ docker-compose.yml       Web and API
 
 1. Ingest licensed Amazon ESCI labels and compare BM25 / TF-IDF / multilingual embeddings.
 2. Add PostgreSQL + pgvector for persistent ANN retrieval, pagination, and relevance logging.
-3. Train a proper shipping estimator only on representative, authorised transactional freight data.
+3. Train a shipping estimator validated on representative, authorised transactional freight data.
 4. Add privacy-safe events and offline evaluation for recommendation strategies.
 5. Add model registry, experiment tracking, latency budgets and production observability.
 
