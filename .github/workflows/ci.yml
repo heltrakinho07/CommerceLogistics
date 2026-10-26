@@ -42,7 +42,7 @@ jobs:
       - run: pip install -r services/api/requirements.txt
       - run: npm install --no-audit --no-fund
         working-directory: apps/web
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
         working-directory: apps/web
       - run: npx playwright test
         working-directory: apps/web
