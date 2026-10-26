@@ -1,5 +1,5 @@
 import type {
-  HealthResponse, Hit, Product, QuoteRequest, QuoteResponse,
+  FreightModelMetrics, FreightPrediction, HealthResponse, Hit, Product, QuoteRequest, QuoteResponse,
   RecommendationResponse, SearchResponse
 } from './types'
 
@@ -34,6 +34,12 @@ export const api = {
   recommend: (id: string) => request<RecommendationResponse>(
     '/api/recommendations/' + encodeURIComponent(id) + '?limit=6'
   ),
+  modelMetrics: () => request<FreightModelMetrics>('/api/models/shipping/metrics'),
+  predictQuote: (payload: QuoteRequest) => request<FreightPrediction>('/api/quote/predict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }),
   quote: (payload: QuoteRequest) => request<QuoteResponse>('/api/quote', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

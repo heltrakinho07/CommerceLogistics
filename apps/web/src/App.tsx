@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { api } from './api'
-import type { HealthResponse, Product, QuoteRequest, QuoteResponse } from './types'
+import type { FreightModelMetrics, FreightPrediction, HealthResponse, Product, QuoteRequest, QuoteResponse } from './types'
 
 type Tab = 'discover' | 'recommend' | 'shipping' | 'architecture'
 type ViewProduct = { product: Product; score?: number }
@@ -87,7 +87,7 @@ function Architecture() {
   const cards = [
     { icon: Search, number: '01', title: 'Pesquisa inteligente', label: 'ML · Modelo treinado', body: 'TF-IDF de palavras e caracteres com similaridade do cosseno. Embeddings multilingues opcionais, activados explicitamente.', tags: ['scikit-learn', 'NLP', 'Ranked retrieval'] },
     { icon: Layers3, number: '02', title: 'Recomendação por conteúdo', label: 'ML · Similaridade', body: 'Comparação vectorial entre produtos, com reforço determinístico de categoria. Não utiliza histórico real de compradores.', tags: ['Content-based', 'Cosine similarity', 'Cold start'] },
-    { icon: Truck, number: '03', title: 'Cotações demonstrativas', label: 'Regras · Não é previsão ML', body: 'Motor de regras com peso volumétrico, origens e destinos, serviço expresso e cobertura. Preços e prazos não são reais.', tags: ['Rules engine', 'Validation', 'MZN'] },
+    { icon: Truck, number: '03', title: 'Previsão de frete e entrega', label: 'ML · Regressão em dados sintéticos', body: 'Ridge, Random Forest e Gradient Boosting comparados em validação; avaliação num teste separado. Sem registos de transportadoras reais.', tags: ['MAE / RMSE / R²', 'Holdout test', 'Synthetic only'] },
   ]
   return (
     <div className="architecture-page">
@@ -100,12 +100,12 @@ function Architecture() {
         </article>)}
       </div>
       <div className="principle-grid">
-        <div className="info-panel"><Database size={24} /><h3>Proveniência de dados</h3><p>Os produtos, as classificações e as tarifas são sintéticos. Não representam inventário, operações comerciais ou clientes reais.</p></div>
-        <div className="info-panel"><BarChart3 size={24} /><h3>Avaliação reproduzível</h3><p>O repositório contém um script de avaliação com Precision@5, Recall@5 e nDCG@5, sobre um conjunto pequeno de consultas rotuladas manualmente.</p></div>
+        <div className="info-panel"><Database size={24} /><h3>Proveniência de dados</h3><p>Os produtos, as classificações e os exemplos de transporte são sintéticos. Mesmo as métricas de regressão medem apenas a simulação, não o mercado real.</p></div>
+        <div className="info-panel"><BarChart3 size={24} /><h3>Avaliação reproduzível</h3><p>O repositório apresenta Precision@5 / Recall@5 / nDCG@5 para pesquisa e MAE / RMSE / R² em conjuntos separados de treino, validação e teste para frete.</p></div>
         <div className="info-panel"><Code2 size={24} /><h3>Implementação end-to-end</h3><p>FastAPI, React, TypeScript, scikit-learn, Docker, validação de pedidos e testes de integração no GitHub Actions.</p></div>
       </div>
       <div className="next-steps">
-        <div><span className="eyebrow">PRÓXIMA ITERAÇÃO</span><h2>De demonstração a produção</h2><p>Integração com datasets licenciados, benchmark independente, Postgres/pgvector, observabilidade e um modelo de frete baseado em dados reais.</p></div>
+        <div><span className="eyebrow">PRÓXIMA ITERAÇÃO</span><h2>De demonstração a produção</h2><p>Integração com datasets licenciados, benchmark independente, Postgres/pgvector, observabilidade e substituição dos dados sintéticos por registos autorizados de frete.</p></div>
         <a className="dark-link" target="_blank" rel="noreferrer" href="https://github.com/heltrakinho07/CommerceLogistics"><ExternalLink size={16} /> Explorar código no GitHub</a>
       </div>
     </div>
@@ -116,25 +116,35 @@ function Shipping({ onError }: { onError: (message: string) => void }) {
   const [form, setForm] = useState<QuoteRequest>(initialQuote)
   const [result, setResult] = useState<QuoteResponse | null>(null)
   const [busy, setBusy] = useState(false)
+  const [prediction, setPrediction] = useState<FreightPrediction | null>(null)
+  const [modelMetrics, setModelMetrics] = useState<FreightModelMetrics | null>(null)
+  const [mlIssue, setMlIssue] = useState('')
+  useEffect(() => { api.modelMetrics().then(setModelMetrics).catch(() => setModelMetrics(null)) }, [])
   const updateNumber = (key: 'weight_kg' | 'length_cm' | 'width_cm' | 'height_cm' | 'declared_value_mzn', value: string) => {
     setForm(previous => ({ ...previous, [key]: Number(value) }))
-    setResult(null)
+    setResult(null); setPrediction(null); setMlIssue('')
   }
   async function calculate() {
     setBusy(true); onError('')
-    try { setResult(await api.quote(form)) }
-    catch (err) { onError(err instanceof Error ? err.message : 'Falha ao calcular a simulação.') }
-    finally { setBusy(false) }
+    try {
+      const [rules, ml] = await Promise.allSettled([api.quote(form), api.predictQuote(form)])
+      if (rules.status === 'fulfilled') setResult(rules.value)
+      if (ml.status === 'fulfilled') setPrediction(ml.value)
+      else setMlIssue(ml.reason instanceof Error ? ml.reason.message : 'Modelo experimental indisponível.')
+      if (rules.status === 'rejected') {
+        onError(rules.reason instanceof Error ? rules.reason.message : 'Falha ao calcular a simulação.')
+      }
+    } finally { setBusy(false) }
   }
   return (
     <div className="shipping-page">
-      <div className="page-heading"><div><div className="eyebrow"><Truck size={15} /> SIMULADOR LOGÍSTICO</div><h1>Calcula antes de enviar.</h1><p>Explora como variáveis logísticas influenciam uma cotação. Todos os valores são fictícios.</p></div><div className="heading-symbol"><Truck size={30} /></div></div>
+      <div className="page-heading"><div><div className="eyebrow"><Truck size={15} /> SIMULADOR LOGÍSTICO</div><h1>Calcula antes de enviar.</h1><p>Compara a previsão de ML treinada em dados sintéticos com o motor de regras. Nenhum valor é comercial.</p></div><div className="heading-symbol"><Truck size={30} /></div></div>
       <div className="shipping-layout">
         <form className="quote-form panel" onSubmit={e => { e.preventDefault(); void calculate() }}>
           <div className="section-title"><span className="section-icon"><MapPin size={20} /></span><div><h2>Origem e destino</h2><p>Selecciona a rota de demonstração</p></div></div>
           <div className="field-grid">
-            <label>Origem<select value={form.origin} onChange={e => { setForm({ ...form, origin: e.target.value as QuoteRequest['origin'] }); setResult(null) }}><option>Lisboa</option><option>Maputo</option><option>Beira</option><option>Nampula</option></select></label>
-            <label>Destino<select value={form.destination} onChange={e => { setForm({ ...form, destination: e.target.value as QuoteRequest['destination'] }); setResult(null) }}><option>Maputo</option><option>Matola</option><option>Beira</option><option>Nampula</option><option>Pemba</option></select></label>
+            <label>Origem<select value={form.origin} onChange={e => { setForm({ ...form, origin: e.target.value as QuoteRequest['origin'] }); setResult(null); setPrediction(null); setMlIssue('') }}><option>Lisboa</option><option>Maputo</option><option>Beira</option><option>Nampula</option></select></label>
+            <label>Destino<select value={form.destination} onChange={e => { setForm({ ...form, destination: e.target.value as QuoteRequest['destination'] }); setResult(null); setPrediction(null); setMlIssue('') }}><option>Maputo</option><option>Matola</option><option>Beira</option><option>Nampula</option><option>Pemba</option></select></label>
           </div>
           <div className="section-title section-spaced"><span className="section-icon"><Box size={20} /></span><div><h2>Dados da encomenda</h2><p>O peso volumétrico também afecta o custo</p></div></div>
           <div className="field-grid">
@@ -148,16 +158,33 @@ function Shipping({ onError }: { onError: (message: string) => void }) {
           </div>
           <div className="section-title section-spaced"><span className="section-icon"><PackageCheck size={20} /></span><div><h2>Modalidade</h2><p>Escolhe o nível de serviço</p></div></div>
           <div className="service-choices">
-            <button type="button" className={'service-option ' + (form.service === 'standard' ? 'chosen' : '')} onClick={() => { setForm({ ...form, service: 'standard' }); setResult(null) }}><Package size={22} /><strong>Standard</strong><span>Envio económico</span>{form.service === 'standard' && <Check className="choice-check" size={16} />}</button>
-            <button type="button" className={'service-option ' + (form.service === 'express' ? 'chosen' : '')} onClick={() => { setForm({ ...form, service: 'express' }); setResult(null) }}><Truck size={22} /><strong>Express</strong><span>Prazo reduzido</span>{form.service === 'express' && <Check className="choice-check" size={16} />}</button>
+            <button type="button" className={'service-option ' + (form.service === 'standard' ? 'chosen' : '')} onClick={() => { setForm({ ...form, service: 'standard' }); setResult(null); setPrediction(null); setMlIssue('') }}><Package size={22} /><strong>Standard</strong><span>Envio económico</span>{form.service === 'standard' && <Check className="choice-check" size={16} />}</button>
+            <button type="button" className={'service-option ' + (form.service === 'express' ? 'chosen' : '')} onClick={() => { setForm({ ...form, service: 'express' }); setResult(null); setPrediction(null); setMlIssue('') }}><Truck size={22} /><strong>Express</strong><span>Prazo reduzido</span>{form.service === 'express' && <Check className="choice-check" size={16} />}</button>
           </div>
           <button className="primary-button full" disabled={busy} type="submit">{busy ? <LoaderCircle className="spin" size={17} /> : <ArrowUpRight size={18} />} Calcular cotação demonstrativa</button>
           <p className="form-footnote"><ShieldCheck size={15} /> Nenhum pedido é efectuado; trata-se apenas de uma simulação.</p>
         </form>
         <div className="quote-result panel">
-          <div className="result-header"><span className="eyebrow">RESULTADO DA SIMULAÇÃO</span><span className="demo-badge"><Check size={13} /> Demo</span></div>
+          <div className="result-header"><span className="eyebrow">COMPARAÇÃO DE ESTIMATIVAS</span><span className="demo-badge"><Check size={13} /> Demo</span></div>
+          {prediction && <section className="ml-prediction" aria-label="Previsão de Machine Learning">
+            <div className="ml-prediction-heading"><BrainCircuit size={19} /><span>Previsão de Machine Learning</span></div>
+            <p className="ml-prediction-subtitle">Regressão supervisionada · dados 100% sintéticos · valores fictícios</p>
+            <div className="ml-prediction-primary"><span>Custo estimado pelo modelo</span><strong>{currency(prediction.predicted_cost_mzn)}</strong></div>
+            <div className="ml-prediction-eta"><Truck size={16} /> Prazo previsto: {prediction.predicted_days} dias (faixa ilustrativa {prediction.estimated_days_min}–{prediction.estimated_days_max})</div>
+            {!prediction.in_training_domain && <p className="ml-caveat">Atenção: valores fora da distribuição usada no treino sintético. A previsão pode ser pouco estável.</p>}
+            {modelMetrics && <div className="model-performance">
+              <div className="model-performance-header"><BarChart3 size={16} /> Avaliação em dados sintéticos não usados no treino</div>
+              <div className="model-performance-row"><span>Custo · {modelMetrics.metrics.cost_mzn.selected_model.replaceAll('_', ' ')}</span><strong>MAE {currency(modelMetrics.metrics.cost_mzn.holdout_test.mae)}</strong></div>
+              <div className="model-performance-row"><span>RMSE do custo</span><strong>{currency(modelMetrics.metrics.cost_mzn.holdout_test.rmse)}</strong></div>
+              <div className="model-performance-row"><span>R² do custo</span><strong>{modelMetrics.metrics.cost_mzn.holdout_test.r2.toFixed(3)}</strong></div>
+              <div className="model-performance-row"><span>Prazo · {modelMetrics.metrics.delivery_days.selected_model.replaceAll('_', ' ')}</span><strong>MAE {modelMetrics.metrics.delivery_days.holdout_test.mae.toFixed(2)} dias</strong></div>
+              <p className="model-performance-footnote">Teste: {modelMetrics.test_samples} encomendas geradas. Estas métricas não demonstram precisão com entregas reais em Moçambique.</p>
+            </div>}
+            <p className="ml-caveat">{prediction.disclaimer}</p>
+          </section>}
+          {mlIssue && <p className="ml-caveat" role="status">Previsão ML indisponível: {mlIssue}. A cotação por regras continua disponível.</p>}
           {result ? <>
-            <div className="quote-total-label">Total estimado (fictício)</div>
+            <div className="quote-total-label">Referência por regras (fictícia)</div>
             <div className="quote-total">{currency(result.total_mzn)}</div>
             <div className="quote-eta"><Truck size={18} /> Prazo ilustrativo: {result.estimated_days_min}–{result.estimated_days_max} dias</div>
             <div className="result-divider" />
@@ -171,8 +198,8 @@ function Shipping({ onError }: { onError: (message: string) => void }) {
               <div><span>Suplemento expresso</span><strong>{currency(result.express_surcharge_mzn)}</strong></div>
               <div><span>Cobertura ilustrativa</span><strong>{currency(result.coverage_fee_mzn)}</strong></div>
             </div>
-            <div className="result-disclaimer"><CircleHelp size={17} /><p>{result.disclaimer} Motor de regras, sem previsão ML.</p></div>
-          </> : <div className="result-empty"><div className="result-art"><Truck size={58} strokeWidth={1.2} /><span className="result-art-ring" /></div><h2>Uma estimativa clara, sem surpresas.</h2><p>Preenche os dados e calcula uma cotação para veres o desdobramento completo do valor.</p><div className="result-promise"><Check size={16} /> Cálculo transparente por regras</div></div>}
+            <div className="result-disclaimer"><CircleHelp size={17} /><p>{result.disclaimer} Cálculo de referência por regras, independente do modelo ML.</p></div>
+          </> : <div className="result-empty"><div className="result-art"><Truck size={58} strokeWidth={1.2} /><span className="result-art-ring" /></div><h2>Uma estimativa clara, sem surpresas.</h2><p>Preenche os dados e calcula uma cotação para veres o desdobramento completo do valor.</p><div className="result-promise"><Check size={16} /> Regressão experimental e comparação por regras</div></div>}
         </div>
       </div>
     </div>
