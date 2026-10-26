@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .catalog import Product, get_catalog, get_product
-from .ml import get_index
+from .ml import get_index\nfrom .freight_ml import artefact_path, get_bundle, predict_shipping
 from .shipping import QuoteRequest, QuoteResponse, quote_shipping
 
 app = FastAPI(
@@ -57,6 +57,22 @@ def recommendations(product_id: str, limit: int = Query(4, ge=1, le=30)):
     index = get_index()
     return {"product_id": product_id, "method": "content_based_" + index.backend,
             "is_demo": True, "results": index.similar(product_id, limit)}
+
+
+@app.get("/api/models/shipping/metrics")
+def shipping_metrics():
+    try:
+        return get_bundle()["metadata"]
+    except (FileNotFoundError, RuntimeError) as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/api/quote/predict")
+def predict_quote(payload: QuoteRequest):
+    try:
+        return predict_shipping(payload)
+    except (FileNotFoundError, RuntimeError) as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.post("/api/quote", response_model=QuoteResponse)
