@@ -1,0 +1,47 @@
+[
+  {
+    "query": "portátil para programação",
+    "relevant_ids": [
+      "p001",
+      "p002",
+      "p003"
+    ]
+  },
+  {
+    "query": "telemóvel com boa câmara",
+    "relevant_ids": [
+      "p005",
+      "p007"
+    ]
+  },
+  {
+    "query": "auscultadores bluetooth",
+    "relevant_ids": [
+      "p008",
+      "p009"
+    ]
+  },
+  {
+    "query": "computador para estudante",
+    "relevant_ids": [
+      "p001",
+      "p002",
+      "p003",
+      "p004"
+    ]
+  },
+  {
+    "query": "rato e teclado para computador",
+    "relevant_ids": [
+      "p012",
+      "p013"
+    ]
+  },
+  {
+    "query": "tablet para desenhar",
+    "relevant_ids": [
+      "p016",
+      "p017"
+    ]
+  }
+]

@@ -1,0 +1,281 @@
+[
+  {
+    "id": "p001",
+    "name": "Laptop NovaBook Pro 14",
+    "description": "Computador portátil de 14 polegadas com processador Ryzen 7, 16GB RAM e SSD 512GB. Ideal para programação, escritório e estudos.",
+    "category": "Computadores",
+    "price_mzn": 48990,
+    "rating": 4.8,
+    "popularity": 92,
+    "tags": [
+      "laptop",
+      "portatil",
+      "programacao",
+      "estudante",
+      "ryzen",
+      "notebook"
+    ]
+  },
+  {
+    "id": "p002",
+    "name": "Laptop EduBook Air 13",
+    "description": "Notebook leve de 13 polegadas, 8GB RAM, SSD 256GB, bateria duradoura para estudantes e trabalhos universitários.",
+    "category": "Computadores",
+    "price_mzn": 32900,
+    "rating": 4.5,
+    "popularity": 84,
+    "tags": [
+      "laptop",
+      "portatil",
+      "universidade",
+      "estudante",
+      "computador",
+      "leve"
+    ]
+  },
+  {
+    "id": "p003",
+    "name": "Laptop WorkStation 15",
+    "description": "Computador portátil Intel i7 32GB RAM SSD 1TB com gráfica dedicada para ciência de dados, programação e machine learning.",
+    "category": "Computadores",
+    "price_mzn": 89900,
+    "rating": 4.9,
+    "popularity": 75,
+    "tags": [
+      "laptop",
+      "programacao",
+      "data science",
+      "machine learning",
+      "gpu"
+    ]
+  },
+  {
+    "id": "p004",
+    "name": "Desktop Office Core i5",
+    "description": "PC de secretária com processador Intel Core i5, 16GB RAM e monitor de 24 polegadas para produtividade.",
+    "category": "Computadores",
+    "price_mzn": 38900,
+    "rating": 4.4,
+    "popularity": 52,
+    "tags": [
+      "desktop",
+      "computador",
+      "pc",
+      "escritorio",
+      "monitor"
+    ]
+  },
+  {
+    "id": "p005",
+    "name": "Smartphone Mobi X12",
+    "description": "Telemóvel Android 5G com ecrã AMOLED 6.5 polegadas e câmara de 50MP e 128GB.",
+    "category": "Telemóveis",
+    "price_mzn": 19990,
+    "rating": 4.6,
+    "popularity": 96,
+    "tags": [
+      "smartphone",
+      "telemovel",
+      "celular",
+      "5g",
+      "android"
+    ]
+  },
+  {
+    "id": "p006",
+    "name": "Smartphone Mobi Lite",
+    "description": "Telemóvel económico Android com bateria 5000mAh, câmara dupla e 64GB de armazenamento.",
+    "category": "Telemóveis",
+    "price_mzn": 10990,
+    "rating": 4.3,
+    "popularity": 88,
+    "tags": [
+      "smartphone",
+      "telemovel",
+      "acessivel",
+      "economico",
+      "android"
+    ]
+  },
+  {
+    "id": "p007",
+    "name": "Smartphone CamPro Ultra",
+    "description": "Telemóvel premium com câmara de alta resolução, 256GB e ecrã OLED para criação de conteúdo.",
+    "category": "Telemóveis",
+    "price_mzn": 45990,
+    "rating": 4.8,
+    "popularity": 71,
+    "tags": [
+      "smartphone",
+      "fotografia",
+      "camera",
+      "celular"
+    ]
+  },
+  {
+    "id": "p008",
+    "name": "Auscultadores SoundWave ANC",
+    "description": "Headphones bluetooth com cancelamento de ruído, autonomia de 30 horas e microfone para reuniões.",
+    "category": "Áudio",
+    "price_mzn": 5990,
+    "rating": 4.7,
+    "popularity": 86,
+    "tags": [
+      "auscultadores",
+      "headphones",
+      "audio",
+      "bluetooth",
+      "reunioes"
+    ]
+  },
+  {
+    "id": "p009",
+    "name": "Auriculares PocketSound Pro",
+    "description": "Fones sem fios true wireless com estojo de carregamento e resistência a salpicos.",
+    "category": "Áudio",
+    "price_mzn": 2990,
+    "rating": 4.5,
+    "popularity": 90,
+    "tags": [
+      "fones",
+      "auriculares",
+      "audio",
+      "sem fios"
+    ]
+  },
+  {
+    "id": "p010",
+    "name": "Coluna SoundBox Mini",
+    "description": "Coluna bluetooth portátil resistente a água com graves fortes.",
+    "category": "Áudio",
+    "price_mzn": 3490,
+    "rating": 4.4,
+    "popularity": 79,
+    "tags": [
+      "coluna",
+      "som",
+      "bluetooth",
+      "audio"
+    ]
+  },
+  {
+    "id": "p011",
+    "name": "Monitor VisionWide 27",
+    "description": "Monitor IPS de 27 polegadas com resolução QHD para edição de imagem e trabalho multitarefa.",
+    "category": "Acessórios",
+    "price_mzn": 16990,
+    "rating": 4.7,
+    "popularity": 73,
+    "tags": [
+      "monitor",
+      "display",
+      "computador",
+      "qhd"
+    ]
+  },
+  {
+    "id": "p012",
+    "name": "Teclado Mechanical K82",
+    "description": "Teclado mecânico compacto retroiluminado para codificação e produtividade.",
+    "category": "Acessórios",
+    "price_mzn": 3990,
+    "rating": 4.6,
+    "popularity": 82,
+    "tags": [
+      "teclado",
+      "programacao",
+      "periferico",
+      "computador"
+    ]
+  },
+  {
+    "id": "p013",
+    "name": "Rato Precision Wireless",
+    "description": "Rato sem fios ergonómico de alta precisão para escritório e programação.",
+    "category": "Acessórios",
+    "price_mzn": 1890,
+    "rating": 4.5,
+    "popularity": 91,
+    "tags": [
+      "rato",
+      "mouse",
+      "sem fios",
+      "periferico"
+    ]
+  },
+  {
+    "id": "p014",
+    "name": "SSD Externo DataDrive 1TB",
+    "description": "Armazenamento externo SSD USB-C de alta velocidade para cópias de segurança e arquivos.",
+    "category": "Acessórios",
+    "price_mzn": 8290,
+    "rating": 4.7,
+    "popularity": 80,
+    "tags": [
+      "ssd",
+      "armazenamento",
+      "usb",
+      "backup"
+    ]
+  },
+  {
+    "id": "p015",
+    "name": "Smartwatch ActiveFit S",
+    "description": "Relógio inteligente com GPS e monitorização de actividade física, autonomia de 7 dias.",
+    "category": "Wearables",
+    "price_mzn": 7990,
+    "rating": 4.3,
+    "popularity": 76,
+    "tags": [
+      "smartwatch",
+      "relogio",
+      "desporto",
+      "gps"
+    ]
+  },
+  {
+    "id": "p016",
+    "name": "Tablet NotePad 11",
+    "description": "Tablet de 11 polegadas com caneta digital para notas de aulas e leitura.",
+    "category": "Tablets",
+    "price_mzn": 22990,
+    "rating": 4.6,
+    "popularity": 69,
+    "tags": [
+      "tablet",
+      "estudo",
+      "notas",
+      "universidade"
+    ]
+  },
+  {
+    "id": "p017",
+    "name": "Tablet CreativePad 12",
+    "description": "Tablet de 12 polegadas para design, ilustração e produtividade móvel.",
+    "category": "Tablets",
+    "price_mzn": 38900,
+    "rating": 4.7,
+    "popularity": 67,
+    "tags": [
+      "tablet",
+      "design",
+      "desenho",
+      "criatividade"
+    ]
+  },
+  {
+    "id": "p018",
+    "name": "Powerbank VoltCharge 20000",
+    "description": "Bateria externa USB-C de 20000 mAh para carregar telemóveis e dispositivos móveis.",
+    "category": "Acessórios",
+    "price_mzn": 2590,
+    "rating": 4.6,
+    "popularity": 94,
+    "tags": [
+      "powerbank",
+      "bateria",
+      "carregamento",
+      "viagem"
+    ]
+  }
+]
