@@ -6,7 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .catalog import Product, get_catalog, get_product
-from .ml import get_index\nfrom .freight_ml import artefact_path, get_bundle, predict_shipping
+from .ml import get_index
+from .freight_ml import get_bundle, predict_shipping
 from .shipping import QuoteRequest, QuoteResponse, quote_shipping
 
 app = FastAPI(

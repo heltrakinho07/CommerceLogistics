@@ -5,6 +5,8 @@ COPY services/api/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY services/api /app/services/api
 COPY data/sample /app/data/sample
+COPY ml/train_shipping.py /app/ml/train_shipping.py
+RUN python /app/ml/train_shipping.py > /app/ml/training-report.json
 RUN useradd --create-home appuser && chown -R appuser:appuser /app
 USER appuser
 EXPOSE 8000

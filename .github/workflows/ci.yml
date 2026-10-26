@@ -14,6 +14,7 @@ jobs:
           cache: pip
           cache-dependency-path: services/api/requirements-dev.txt
       - run: pip install -r services/api/requirements-dev.txt
+      - run: PYTHONPATH=services/api python ml/train_shipping.py
       - run: PYTHONPATH=services/api pytest -q services/api/tests
       - run: PYTHONPATH=services/api python ml/evaluate_search.py
   web:
@@ -42,6 +43,7 @@ jobs:
       - run: pip install -r services/api/requirements.txt
       - run: npm install --no-audit --no-fund
         working-directory: apps/web
+      - run: PYTHONPATH=services/api python ml/train_shipping.py
       - run: npx playwright install chromium
         working-directory: apps/web
       - run: npx playwright test
@@ -125,6 +127,19 @@ jobs:
           with urllib.request.urlopen(request, timeout=10) as response:
               quote = json.load(response)
           assert quote["is_demo"] is True and quote["total_mzn"] > 0
+          forecast_request = urllib.request.Request(
+              base + "/api/quote/predict",
+              data=request.data,
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+          with urllib.request.urlopen(forecast_request, timeout=10) as response:
+              prediction = json.load(response)
+          assert prediction["method"] == "trained_regression" and prediction["predicted_cost_mzn"] > 0
+          assert prediction["source"] == "synthetic_generated_simulation"
+          with urllib.request.urlopen(base + "/api/models/shipping/metrics", timeout=10) as response:
+              metrics = json.load(response)
+          assert metrics["test_samples"] > 0
           print("Render Docker smoke: React / API / bundle / quote OK")
           PY
       - name: Collect diagnostic logs

@@ -92,3 +92,51 @@ def test_index_ranking_is_repeatable():
     index = SearchIndex(get_catalog())
     first = index.search("computador portatil", 5)
     assert first == index.search("computador portatil", 5)
+
+def test_shipping_regression_artifact_and_metrics():
+    from app.freight_ml import get_bundle
+    bundle = get_bundle()
+    metadata = bundle["metadata"]
+    assert metadata["source"] == "synthetic_generated_simulation"
+    assert metadata["test_samples"] > 100
+    for target in ("cost_mzn", "delivery_days"):
+        scores = metadata["metrics"][target]["holdout_test"]
+        assert scores["mae"] >= 0
+        assert scores["rmse"] >= scores["mae"]
+        assert scores["r2"] <= 1
+    r = client.get("/api/models/shipping/metrics")
+    assert r.status_code == 200
+    assert r.json()["version"] == metadata["version"]
+
+
+def test_freight_regression_endpoint_is_ml_and_explicitly_synthetic():
+    payload = {
+        "origin": "Lisboa", "destination": "Maputo", "weight_kg": 2,
+        "length_cm": 35, "width_cm": 25, "height_cm": 20,
+        "service": "standard", "declared_value_mzn": 1000,
+    }
+    resp = client.post("/api/quote/predict", json=payload)
+    assert resp.status_code == 200
+    result = resp.json()
+    assert result["method"] == "trained_regression"
+    assert result["source"] == "synthetic_generated_simulation"
+    assert result["in_training_domain"] is True
+    assert result["predicted_cost_mzn"] > 0
+    assert result["predicted_days"] >= 1
+    assert "sintéticos" in result["disclaimer"]
+    assert resp.json() == client.post("/api/quote/predict", json=payload).json()
+    express = client.post("/api/quote/predict", json={**payload, "service": "express"}).json()
+    assert express["predicted_cost_mzn"] > 0
+    assert express["predicted_days"] >= 1
+    assert client.post("/api/quote/predict", json={**payload, "destination": "Lisboa"}).status_code == 422
+
+
+def test_regression_flags_out_of_domain():
+    q = {
+        "origin": "Beira", "destination": "Pemba", "weight_kg": 120,
+        "length_cm": 70, "width_cm": 65, "height_cm": 60,
+        "service": "standard",
+    }
+    result = client.post("/api/quote/predict", json=q).json()
+    assert result["in_training_domain"] is False
+    assert result["predicted_cost_mzn"] >= 0
