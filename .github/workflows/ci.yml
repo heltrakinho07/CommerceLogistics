@@ -94,7 +94,7 @@ jobs:
                   with urllib.request.urlopen(base + "/api/health", timeout=3) as response:
                       health = json.load(response)
                   break
-              except (urllib.error.URLError, TimeoutError):
+              except (OSError, TimeoutError):
                   time.sleep(2)
           else:
               raise RuntimeError("Render-style service never became healthy")
