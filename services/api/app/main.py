@@ -3,6 +3,7 @@ import os
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .catalog import Product, get_catalog, get_product
 from .ml import get_index
@@ -61,3 +62,10 @@ def recommendations(product_id: str, limit: int = Query(4, ge=1, le=30)):
 @app.post("/api/quote", response_model=QuoteResponse)
 def shipping_quote(payload: QuoteRequest):
     return quote_shipping(payload)
+
+
+# Optional production mode: serve the compiled React app on the same origin.
+# Local Vite + FastAPI development and existing API tests remain unchanged.
+static_directory = os.getenv("FRONTEND_DIST_DIR")
+if static_directory:
+    app.mount("/", StaticFiles(directory=static_directory, html=True), name="frontend")

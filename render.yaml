@@ -1,0 +1,16 @@
+# Render Blueprint for the portfolio demo.
+# One Free Web Service serves both the compiled React UI and FastAPI ML API.
+services:
+  - type: web
+    name: commercelogistics-ai
+    runtime: docker
+    plan: free
+    repo: https://github.com/heltrakinho07/CommerceLogistics
+    branch: main
+    dockerfilePath: ./Dockerfile.render
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: SEARCH_BACKEND
+        value: tfidf

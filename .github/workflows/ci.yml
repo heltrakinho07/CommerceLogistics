@@ -69,3 +69,66 @@ jobs:
         run: |
           docker compose logs --tail 80
           docker compose down --remove-orphans
+
+  render-smoke:
+    name: render-production-smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Render production image
+        run: docker build --file Dockerfile.render --tag commerce-render:ci .
+      - name: Start Render-like container
+        run: docker run --rm -d --name commerce-render-ci --env PORT=10000 --publish 10000:10000 commerce-render:ci
+      - name: Check React, API, and static assets from the same URL
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          import time
+          import urllib.error
+          import urllib.request
+
+          base = "http://127.0.0.1:10000"
+          for attempt in range(45):
+              try:
+                  with urllib.request.urlopen(base + "/api/health", timeout=3) as response:
+                      health = json.load(response)
+                  break
+              except (urllib.error.URLError, TimeoutError):
+                  time.sleep(2)
+          else:
+              raise RuntimeError("Render-style service never became healthy")
+
+          assert health["status"] == "ok" and health["catalog_size"] >= 12
+          with urllib.request.urlopen(base + "/", timeout=10) as response:
+              html = response.read().decode("utf-8")
+          assert "CommerceLogistics AI" in html
+          js = re.search(r'src="([^"]+\.js)"', html)
+          assert js, "Compiled JS bundle not referenced in the HTML"
+          with urllib.request.urlopen(base + js.group(1), timeout=10) as response:
+              assert response.status == 200 and "javascript" in response.headers.get("Content-Type", "")
+          with urllib.request.urlopen(base + "/api/search?q=laptop", timeout=10) as response:
+              assert json.load(response)["results"]
+          with urllib.request.urlopen(base + "/docs", timeout=10) as response:
+              assert response.status == 200
+          request = urllib.request.Request(
+              base + "/api/quote",
+              data=json.dumps({
+                  "origin": "Lisboa", "destination": "Maputo",
+                  "weight_kg": 2, "length_cm": 30,
+                  "width_cm": 20, "height_cm": 15,
+                  "service": "standard",
+              }).encode(),
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+          with urllib.request.urlopen(request, timeout=10) as response:
+              quote = json.load(response)
+          assert quote["is_demo"] is True and quote["total_mzn"] > 0
+          print("Render Docker smoke: React / API / bundle / quote OK")
+          PY
+      - name: Collect diagnostic logs
+        if: always()
+        run: |
+          docker logs commerce-render-ci || true
+          docker rm -f commerce-render-ci || true

@@ -14,6 +14,30 @@
 | Shipping simulator | `POST /api/quote` | Deterministic, volumetric-weight tariff simulator |
 | Diagnostics | `GET /api/health` and `GET /docs` | Readiness and OpenAPI |
 
+## Publish on Render (one service, one URL)
+
+The root [`render.yaml`](render.yaml) Blueprint deploys the portfolio demo as **one free Docker web service**. A multi-stage [`Dockerfile.render`](Dockerfile.render) compiles React and then serves its static assets via the FastAPI process, so **the browser and the API share the same origin**. This avoids a separate API URL, CORS configuration and two idling services. This single-service setup is for a compact portfolio demo; for higher traffic use separate static-site and API services.
+
+1. Sign in at [Render Dashboard](https://dashboard.render.com/) and connect the GitHub account owning `heltrakinho07/CommerceLogistics`.
+2. Choose **New → Blueprint**, select this repository and branch `main`.
+3. Verify Render detects `render.yaml`; confirm **plan: Free**, **runtime: Docker** and the listed service `commercelogistics-ai`.
+4. Review any usage/billing prompts and click **Deploy Blueprint**.
+5. Open **the exact `.onrender.com` URL shown by Render**. Do not assume a subdomain before Render assigns it.
+6. Test `/`, `/api/health`, `/api/search?q=laptop` and `/docs` on that URL.
+
+The Render process listens on `0.0.0.0` and the platform's `PORT` (default `10000`). Updates to `main` are configured to auto-deploy **only after GitHub checks pass**. No external API keys or databases are required.
+
+**Limits:** Render Free instances have 512 MiB RAM and spin down after 15 minutes without traffic. The next request can take around a minute to wake the service. The default `SEARCH_BACKEND=tfidf` is deliberately light; **do not switch to sentence-transformers on the Free instance** without capacity/load testing. Only use synthetic catalogue products and simulated shipping fees on this public demo. Deploying the Blueprint requires access to your own Render account; committing these files does not itself provision a service.
+
+### Test the Render image locally
+
+```bash
+docker build -f Dockerfile.render -t commerce-render .
+docker run --rm -p 10000:10000 -e PORT=10000 commerce-render
+```
+
+Open `http://localhost:10000` (frontend) and `http://localhost:10000/docs` (API). CI automatically builds this image and verifies HTTP responses and compiled JavaScript assets.
+
 ## Start with Docker
 
 Requires Docker Compose.
