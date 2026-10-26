@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Activity, ArrowDownRight, ArrowLeft, ArrowRight, ArrowUpRight, BarChart3,
-  Box, BrainCircuit, Check, ChevronDown, CircleHelp, Code2, Cpu,
-  Database, ExternalLink, Filter, Globe2, Headphones, Heart, Laptop,
-  Layers3, LayoutDashboard, LoaderCircle, MapPin, Menu, Package,
+  Activity, ArrowLeft, ArrowRight, ArrowUpRight, BarChart3,
+  Box, BrainCircuit, Check, CircleHelp, Code2, Cpu,
+  Database, ExternalLink, Headphones, Laptop,
+  Layers3, LoaderCircle, MapPin, Menu, Package,
   PackageCheck, PackageSearch, Search, ShieldCheck, ShoppingBag,
   SlidersHorizontal, Smartphone, Sparkles, Star, Tag, Tablet, Truck,
   WandSparkles, Watch, X
