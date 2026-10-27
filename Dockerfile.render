@@ -12,7 +12,11 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/services/api \
-    FRONTEND_DIST_DIR=/app/frontend
+    FRONTEND_DIST_DIR=/app/frontend \
+    OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    LOKY_MAX_CPU_COUNT=1
 COPY services/api/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY services/api/app /app/services/api/app
